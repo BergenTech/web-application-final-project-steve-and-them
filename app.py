@@ -17,5 +17,11 @@ def register():
         role = request.form.get('role')
     return render_template('register.html')
 
+@app.route('/report', methods=['POST', 'GET'])
+def report():
+    if request.method=='POST':
+        item_name = request.form.get('item_name')
+    return render_template('report.html')
+
 if __name__ == '__main__':
     app.run(debug=True)
