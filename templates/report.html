@@ -3,13 +3,53 @@
 {% block title %}Report{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <br>
 <br>
 <h1>Report</h1>
 <form action="/report" method="POST">
+  {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for category, message in messages %}
+                    <li class="{{category}}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
     <br>
-    <label for="first-name">Item Name:</label>
-    <input type="text" id="item-name" name="item_name" required>
+    <div class="input-group">
+        <span class="input-group-text" id="basic-addon1">
+          <i class="fa-sharp fa-regular fa-id-card"></i>
+        </span>
+        <input type="text" class="form-control" name="item_name" placeholder="Item name" required>
+      </div>
+    <br>
+    <br>
+    <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-addon1">
+          <i class="fa-sharp fa-regular fa-id-card"></i>
+        </span>
+        <input type="file" class="form-control" name="item_image" accept=".jpg, .png" placeholder= "Upload a picture" aria-describedby="basic-addon1" required>
+      </div>
+    <br>
+    <br>
+    <div class="input-group mb-3">
+      <span class="input-group-text" id="basic-addon1">
+        <i class="fa-sharp fa-regular fa-id-card"></i>
+      </span>
+      <input type="date" class="form-control" name="item_date" placeholder="Pick the date you found it" aria-describedby="basic-addon1" required>
+    </div>
+    <br>
+    <br>
+    <div class="input-group">
+      <span class="input-group-text" id="basic-addon1">
+      </span>
+      <input type="text" class="form-control" name="item_description" placeholder="Description of missing item" required>
+    </div>
     <br>
     <br>
     <button type="submit">Report</button>
