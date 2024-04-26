@@ -9,11 +9,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <br>
 <br>
-<h1>Register</h1>
+<h1 style="text-align:center;">Register</h1>
 <form action="/register" method="POST">
     <br>
-    <label for="first-name">First Name:</label>
-    <input type="text" id="first-name" name="first_name" required>
+    <div style="text-align:center;">
+    <label for="first-name" >First Name:</label>
+    <input type="text" id="first-name" name="first_name" style="text-align:center;" required>
     <br>
     <br>
     <label for="last-name">Last Name:</label>
@@ -43,5 +44,6 @@
     <label for="teacher">Teacher</label>
     <br>
     <button type="submit">Register</button>
+    </div>
 </form>
 {% endblock %}

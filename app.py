@@ -82,6 +82,8 @@ def register():
         else:
             flash("Login Successful!", "success")
             return render_template('register.html')
+    else:
+        return render_template('register.html')
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
