@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, flash, url_for
+from flask import Flask, render_template, request, flash, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -81,7 +81,7 @@ def register():
             return render_template('register.html')
         else:
             flash("Login Successful!", "success")
-            return render_template('register.html')
+            return redirect(url_for())
     else:
         return render_template('register.html')
 
