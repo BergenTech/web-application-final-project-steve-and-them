@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, flash, url_for
+from flask import Flask, render_template, request, flash, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -6,9 +6,11 @@ from flask_login import LoginManager, UserMixin, login_user, current_user, logou
 import random, base64
 from datetime import datetime
 from sqlalchemy import desc, asc
+from authlib.integrations.flask_client import OAuth
+import os
 
 app = Flask(__name__)
-app.secret_key = "secret_key"
+app.secret_key = os.urandom(12)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///library.db"
 # login_manager = LoginManager(app)
 # login_manager.login_view = 'login'
@@ -16,6 +18,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///library.db"
 # login_manager.login_message_category = "danger"
 
 db = SQLAlchemy(app)
+oauth = OAuth(app)
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -86,6 +89,35 @@ def register():
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     return render_template("login.html")
+
+@app.route('/google/')
+def google():
+
+    GOOGLE_CLIENT_ID = '674927316690-r9hll1ihs30mktdrr7ta3bv4r2irbk8o.apps.googleusercontent.com'
+    GOOGLE_CLIENT_SECRET = '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'
+
+    CONF_URL = 'https://accounts.google.com/.well-known/openid-configuration'
+    oauth.register(
+        name='google',
+        client_id=GOOGLE_CLIENT_ID,
+        client_secret=GOOGLE_CLIENT_SECRET,
+        server_metadata_url=CONF_URL,
+        client_kwargs={
+            'scope': 'openid email profile'
+        }
+    )
+
+    # Redirect to google_auth function
+    redirect_uri = url_for('google_auth', _external=True)
+    print(redirect_uri)
+    return oauth.google.authorize_redirect(redirect_uri)
+
+@app.route('/google/auth/')
+def google_auth():
+    token = oauth.google.authorize_access_token()
+    user = oauth.google.parse_id_token(token)
+    print(" Google User ", user)
+    return redirect('/')
     
 
 # @app.route('/report', methods=['POST', 'GET'])
