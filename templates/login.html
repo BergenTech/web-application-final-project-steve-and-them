@@ -18,8 +18,15 @@
 <br>
 <div align="center">
 <h1>LOGIN</h1>
-<br>
-<br>
-<br>
-<br>
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+   <strong>{{ message }}</strong>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+
 {% endblock %}

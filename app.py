@@ -6,6 +6,7 @@ from flask_login import LoginManager, UserMixin, login_user, current_user, logou
 import random, base64
 from datetime import datetime
 from sqlalchemy import desc, asc, inspect
+from flask_migrate import Migrate
 import os
 
 app = Flask(__name__)
