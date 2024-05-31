@@ -111,9 +111,24 @@ def register():
 
     return render_template("register.html")
 
-@app.route('/login', methods=['POST', 'GET'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template("login.html")
+    if request.method == 'POST':
+        email = request.form.get("email")
+        password = request.form.get("password")
+        # Check if user exists and passwords match
+        user = User.query.filter_by(email=email).first()
+        if user and user.check_password(password):
+            # Successful login
+            flash('Login successful!', 'success')
+            # Redirect to a dashboard or profile page
+            return redirect(url_for('account'))  # Replace 'dashboard' with your route for dashboard or profile
+        else:
+            # Failed login
+            flash('Invalid email or password. Please try again.', 'danger')
+
+    # Render the login template
+    return render_template('login.html')
 
 @app.route('/account')
 def account():
