@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, flash, url_for, redirect
+from flask import Flask, render_template, request, flash, url_for, redirect, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -107,6 +107,7 @@ def register():
         db.session.commit()
 
         flash("Account created successfully!", "success")
+        session['registered'] = True
         return redirect(url_for('login'))
 
     return render_template("register.html")
@@ -122,6 +123,8 @@ def login():
             # Successful login
             flash('Login successful!', 'success')
             # Redirect to a dashboard or profile page
+            if 'registered' in session:
+                session['logged_in'] = True
             return redirect(url_for('account'))  # Replace 'dashboard' with your route for dashboard or profile
         else:
             # Failed login

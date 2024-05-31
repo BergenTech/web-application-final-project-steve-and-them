@@ -30,13 +30,13 @@
              <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
                {% with messages = get_flashed_messages(with_categories=true) %}
                {% if messages %}
-               {% for category, message in messages %}
-               <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                  <strong>{{ message }}</strong>
-               </div>
-               {% endfor %}
+                   {% for category, message in messages %}
+                       <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                           <strong>{{ message }}</strong>
+                       </div>
+                   {% endfor %}
                {% endif %}
-               {% endwith %}
+           {% endwith %}
 
                <p class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Login</p>
 

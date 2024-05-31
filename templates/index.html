@@ -28,23 +28,35 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
   <div class="w3-bar w3-red w3-card w3-left-align w3-large">
     <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
     <a href="/" class="w3-bar-item w3-button w3-padding-large w3-white">Home</a>
-    <!-- <a href="/register" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Register</a> -->
+    {%if not session.get('registered')%}
     <a href="/register" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Register</a>
-    <a href="/login" class="w3-bar-item w3-button w3-padding-large w3-hover-white">Login</a>
-    <a href="/report" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Report a Missing Item</a>
+    {%endif%}
+    {% if session.get('registered') and not session.get('logged_in') %}
+    <a href="/login" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Login</a>
+    {%endif%}
     <a href="/inventory" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Access the Lost and Found</a>
+    {% if session.get('logged_in') %}
+    <a href="/report" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Report a Missing Item</a>
     <a href="/account" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Account</a>
-    <a href="/contact" class="w3-bar-item w3-button w3-padding-large w3-hover-white">Contact</a>
+    <a href="/contact" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Contact</a>
+    {%endif%}
   </div>
 
   <!-- Navbar on small screens -->
   <div id="navDemo" class="w3-bar-block w3-white w3-hide w3-hide-large w3-hide-medium w3-large">
+    <a href="/" class="w3-bar-item w3-button w3-padding-large w3-white">Home</a>
+    {%if not session.get('registered')%}
     <a href="/register" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Register</a>
-    <a href="/login" class="w3-bar-item w3-button w3-padding-large w3-hover-white">Login</a>
-    <a href="/report" class="w3-bar-item w3-button w3-padding-large">Report a Missing Item</a>
-    <a href="/inventory" class="w3-bar-item w3-button w3-padding-large">Access the Lost and Found</a>
-    <a href="/account" class="w3-bar-item w3-button w3-padding-large">Account</a>
-    <a href="/contact" class="w3-bar-item w3-button w3-padding-large w3-hover-white">Contact</a>
+    {%endif%}
+    {% if session.get('registered') and not session.get('logged_in') %}
+    <a href="/login" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Login</a>
+    {%endif%}
+    <a href="/inventory" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Access the Lost and Found</a>
+    {% if session.get('logged_in') %}
+    <a href="/report" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Report a Missing Item</a>
+    <a href="/account" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Account</a>
+    <a href="/contact" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Contact</a>
+    {%endif%}
   </div>
 </div>
 
