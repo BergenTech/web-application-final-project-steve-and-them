@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
 import random, base64
 from datetime import datetime
-from sqlalchemy import desc, asc
+from sqlalchemy import desc, asc, inspect
 import os
 
 app = Flask(__name__)
@@ -19,19 +19,21 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///library.db"
 db = SQLAlchemy(app)
 
 
-class User(db.Model, UserMixin):
+class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(255), unique=True, nullable=False)
-    last_name = db.Column(db.String(255), unique=True, nullable=False)
-    email = db.Column(db.String(255), unique=True, nullable=False)
+    first_name = db.Column(db.String(80), nullable=False)
+    last_name = db.Column(db.String(80), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    profile_picture = db.Column(db.LargeBinary)
+    role = db.Column(db.String(10), nullable=False)  # "student" or "teacher"
     password_hash = db.Column(db.String(128), nullable=False)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
-
+    
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-
+    
 class Item(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(50), unique=True)
@@ -51,39 +53,62 @@ with app.app_context():
 def home():
     return render_template('index.html')
 
-@app.route('/register', methods=['POST', 'GET'])
+@app.route("/register", methods=["GET", "POST"])
 def register():
-    if request.method == 'POST':
-        # Extract form data
-        first_name = request.form.get('first_name')
-        last_name = request.form.get('last_name')
-        email = request.form.get('email')
-        password = request.form.get('password')
+    if request.method == "POST":
+        # Get form data
+        first_name = request.form.get("first_name")
+        last_name = request.form.get("last_name")
+        email = request.form.get("email")
+        password = request.form.get("password")
         confirm_password = request.form.get("confirm_password")
-        phone_number = request.form.get('phone_number')
+        profile_picture = request.files.get("profile_picture")
         role = request.form.get("role")
 
-        if not (
-            first_name
-            and last_name
-            and password
-            and confirm_password
-            and phone_number
-            and email
-            and role
-        ):
+        print(f"first_name: {first_name}")
+        print(f"last_name: {last_name}")
+        print(f"email: {email}")
+        print(f"password: {password}")
+        print(f"confirm_password: {confirm_password}")
+        print(f"profile_picture: {profile_picture}")
+        print(f"role: {role}")
+
+        # Validate form data
+        if not (first_name and last_name and email and password and confirm_password and profile_picture and role):
             flash("Please fill in all fields.", "danger")
-            return render_template('register.html')
-        user = User.query.filter_by(email=email).first()
-        if user is not None and email == user.email:
-            flash("An account already exists under this email. Try a different email or login", "danger")
-            return render_template('register.html')
+            return render_template("register.html")
+        
         if password != confirm_password:
-            flash("Passwords do not match, please try again", "danger")
-            return render_template('register.html')
-        else:
-            flash("Login Successful!", "success")
-            return render_template('register.html')
+            flash("Passwords do not match.", "danger")
+            return render_template("register.html")
+
+        # Check if user already exists
+        user = User.query.filter_by(email=email).first()
+        if user is not None:
+            flash("User already exists! Try a different email.", "danger")
+            return render_template("register.html")
+
+        # Get profile picture data
+        profile_picture_data = profile_picture.read()
+
+        # Create a new user instance
+        new_user = User(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            profile_picture=profile_picture_data,
+            role=role
+        )
+        new_user.set_password(password)
+
+        # Save the new user to the database
+        db.session.add(new_user)
+        db.session.commit()
+
+        flash("Account created successfully!", "success")
+        return redirect(url_for('login'))
+
+    return render_template("register.html")
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():

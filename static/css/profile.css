@@ -1,0 +1,24 @@
+img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%; /* For circular images */
+}
+
+.update-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    padding: 10px 20px;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    outline: none;
+    opacity: 0; /* Initially hidden */
+    transition: opacity 0.3s ease; /* Smooth transition */
+}
+
+.image-container:hover .update-button {
+    opacity: 1; /* Show button on hover */
+}

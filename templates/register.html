@@ -1,49 +1,132 @@
 {% extends "base.html" %}
 
 {% block title %}Register{% endblock %}
-
+{%set active_page = 'hone'%}
 {% block content %}
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<br>
-<br>
-<h1 style="text-align:center;">Register</h1>
-<form action="/register" method="POST">
-    <br>
-    <div style="text-align:center;">
-    <label for="first-name" >First Name:</label>
-    <input type="text" id="first-name" name="first_name" style="text-align:center;" required>
-    <br>
-    <br>
-    <label for="last-name">Last Name:</label>
-    <input type="text" id="last-name" name="last_name" required>
-    <br>
-    <br>
-    <label for="email">Email:</label>
-    <input type="email" id="email" name="email" required>
-    <br>
-    <br>
-    <label for="email">Password:</label>
-    <input type="password" id="password" name="password" required>
-    <br>
-    <br>
-    <label for="email">Confirm Password:</label>
-    <input type="password" id="confirm_password" name="confirm_password" required>
-    <br>
-    <br>
-    <label for="phone">Phone Number:</label>
-    <input type="tel" id="phone" name="phone_number" required>
-    <br>
-    <br>
-    <label for="role">I am a:</label>
-    <input type="radio" id="student" name="role" value="student" required>
-    <label for="student">Student</label>
-    <input type="radio" id="teacher" name="role" value="teacher" required>
-    <label for="teacher">Teacher</label>
-    <br>
-    <button type="submit">Register</button>
+<link rel="stylesheet" href="static/assets/css/bootstrap-5.0.0-alpha-2.min.css" />
+<link rel="stylesheet" href="static/assets/css/LineIcons.2.0.css" />
+<link rel="stylesheet" href="static/assets/css/animate.css" />
+<link rel="stylesheet" href="static/assets/css/lindy-uikit.css" />
+<link rel="stylesheet" href="static/assets/css/style.css">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+<div class="container ">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col-lg-12 col-xl-11">
+        <div class="card text-black" style="border-radius: 25px;">
+          <div class="card-body p-md-5">
+            <div class="row justify-content-center">
+              <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                   <strong>{{ message }}</strong>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <p class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Register</p>
+
+                <form class="mx-1 mx-md-4" method="POST" enctype="multipart/form-data" action="/register">
+
+                  <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon1">
+                      <i class="fa-sharp fa-regular fa-id-card"></i>
+                    </span>
+                    <input type="file" class="form-control" name="profile_picture" accept=".jpg, .png" aria-describedby="basic-addon1" required>
+                  </div>
+
+                  <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon1">
+                      <i class="fas fa-user fa-lg me-3 fa-fw"></i>
+                    </span>
+                    <input type="text" class="form-control" placeholder="First Name" name="first_name" aria-describedby="basic-addon1" required>
+                  </div>
+                  <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon1">
+                      <i class="fas fa-user fa-lg me-3 fa-fw"></i>
+                    </span>
+                    <input type="text" class="form-control" placeholder="Last Name" name="last_name" aria-describedby="basic-addon1" required>
+                  </div>
+
+                  <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon1">
+                      <i class="fas fa-envelope fa-lg me-3 fa-fw"></i>                          </span>
+                    <input type="email" class="form-control" placeholder="Your Email" name="email" aria-describedby="basic-addon1" required>
+                  </div>
+
+                  <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon1">
+                      <i class="fas fa-lock fa-lg me-3 fa-fw"></i>                         </span>
+                    <input type="password" class="form-control" placeholder="Password" name="password" aria-describedby="basic-addon1" required>
+                  </div>
+
+                  <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon1">
+                      <i class="fas fa-key fa-lg me-3 fa-fw"></i>                        </span>
+                    <input type="password" class="form-control" placeholder="Confirm password" name="confirm_password" aria-describedby="basic-addon1" required>
+                  </div>
+                
+                  <!-- <div class="input-group mb-3">
+                    <span class="input-group-text" id="basic-addon1">
+                      <i class="fas fa-key fa-lg me-3 fa-fw"></i>                        </span>
+                      <input type="tel" placeholder="Phone number" name="phone_number" class="form-control">
+                  </div> -->
+
+                  <div class="form-check form-switch">
+                    <label for="role">Role</label>
+                    <select class="form-control" id="role" name="role" required>
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                    </select>
+                  </div>
+
+                  <script>
+                    // Get the checkbox and text input elements
+                    const mfa_toggle = document.getElementById('mfa_toggle');
+                    const phoneNumber = document.getElementById('phoneNumber');
+                
+                    // Add event listener to checkbox
+                    mfa_toggle.addEventListener('change', function() {
+                      // If mfa toggle is enabled, display the text input, otherwise hide it
+                      if (this.checked) {
+                        phoneNumber.style.display = 'block';
+                      } else {
+                        phoneNumber.style.display = 'none';
+                      }
+                    });
+                  </script>
+
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="accepted" name = "accept_terms" id="flexCheckDefault" required>
+                    <label class="form-check-label" for="flexCheckDefault">
+                      I agree all statements in <a href="#!">Terms of service</a>
+                    </label>
+                  </div>
+
+
+                  <div class="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
+                    <button type="submit" class="btn btn-primary btn-lg">Register</button>
+                  </div>
+
+                </form>
+
+              </div>
+              <div class="col-md-10 col-lg-6 col-xl-7 d-flex align-items-center order-1 order-lg-2">
+
+                <img src="static\assets\img\addition\register.webp"
+                  class="img-fluid" alt="Sample image">
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-</form>
+  </div>
 {% endblock %}
