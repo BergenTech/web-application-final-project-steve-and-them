@@ -19,8 +19,6 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///library.db"
 
 db = SQLAlchemy(app)
 
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
 
 
 class User(db.Model):
@@ -128,7 +126,6 @@ def login():
             # Redirect to a dashboard or profile page
             if 'registered' in session:
                 session['logged_in'] = True
-                login_user(user)
             return redirect(url_for('account'))  # Replace 'dashboard' with your route for dashboard or profile
         else:
             # Failed login
@@ -137,13 +134,13 @@ def login():
     # Render the login template
     return render_template('login.html')
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+# @login_manager.user_loader
+# def load_user(user_id):
+#     return User.query.get(int(user_id))
 
 @app.route('/account')
 def account():
-    return render_template("account.html", user=current_user)
+    return render_template("account.html")
 
 @app.route("/report", methods=["POST", "GET"])
 def reportItem():

@@ -1,7 +1,7 @@
-{% extends "base.html" %}
+<{% extends "base.html" %}
 
-{% block title %}Report{% endblock %}
-
+{% block title %}Register{% endblock %}
+{%set active_page = 'hone'%}
 {% block content %}
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
@@ -12,56 +12,81 @@
 <link rel="stylesheet" href="static/assets/css/animate.css" />
 <link rel="stylesheet" href="static/assets/css/lindy-uikit.css" />
 <link rel="stylesheet" href="static/assets/css/style.css">
-<link rel="stylesheet" href="static/assets/css/signin.css">
-<br>
-<br>
-<h1 style="text-align:center;">Report</h1>
-<form action="/report" method="POST">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-  {% for category, message in messages %}
-  <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-     <strong>{{ message }}</strong>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+<div class="container ">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col-lg-12 col-xl-11">
+        <div class="card text-black" style="border-radius: 25px;">
+          <div class="card-body p-md-5">
+            <div class="row justify-content-center">
+              <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                   <strong>{{ message }}</strong>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <p class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Report</p>
+
+                <form class="mx-1 mx-md-4" method="POST" enctype="multipart/form-data" action="/report">
+
+                <div class="input-group mb-3">
+                  <span class="input-group-text" id="basic-addon1">
+                    <i class="fas fa-user fa-lg me-3 fa-fw"></i>
+                  </span>
+                  <input type="text" class="form-control" placeholder="Item Name" name="item_name" aria-describedby="basic-addon1" required>
+                </div>
+                <br>
+
+                <div class="input-group mb-3">
+                  <span class="input-group-text" id="basic-addon1">
+                    <i class="fa-sharp fa-regular fa-id-card"></i>
+                  </span>
+                  <input type="file" class="form-control" name="item_image" accept=".jpg, .png" aria-describedby="basic-addon1" required>
+                </div>
+                <br>
+                
+                <div class="input-group mb-3"">
+                  <span class="input-group-text" id="basic-addon1">
+                    <i class="fa-sharp fa-regular fa-id-card"></i>
+                  </span>
+                  <input type="date" class="form-control" name="item_date" placeholder="Pick the date you found it" aria-describedby="basic-addon1" required>
+                </div>
+                <br>
+                
+                <div class="input-group mb-3">
+                  <span class="input-group-text" id="basic-addon1">
+                  </span>
+                    <textarea id="myTextarea" name="item_description" placeholder="Provide short description of missing item (Where it was found, by what hallway, etc.)" rows="4" cols="50">
+                    
+                    </textarea>
+                </div>
+                <br>
+                
+                <br>
+                <div class="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
+                  <button type="submit" class="btn btn-primary btn-lg">Report</button>
+                </div>
+                </form>
+              </div>
+      
+              <div class="col-md-10 col-lg-6 col-xl-7 d-flex align-items-center order-1 order-lg-2">
+                <img src="https://upload.wikimedia.org/wikipedia/en/6/6e/Bergen_County_Technical_High_School_-_Teterboro_Campus_Logo.png"
+                  class="img-fluid" alt="Sample image">
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  {% endfor %}
-  {% endif %}
-  {% endwith %}
-    <br>
-    <div class="input-group" style="text-align:center;">
-        <span class="input-group-text" id="basic-addon1">
-          <i class="fa-sharp fa-regular fa-id-card"></i>
-        </span>
-        <input type="text" class="form-control" name="item_name" placeholder="Item name" required>
-      </div>
-    <br>
-    <br>
-    <div class="input-group mb-3" style="text-align:center;">
-        <span class="input-group-text" id="basic-addon1">
-          <i class="fa-sharp fa-regular fa-id-card"></i>
-        </span>
-        <input type="file" class="form-control" name="item_image" accept=".jpg, .png" placeholder= "Upload a picture" aria-describedby="basic-addon1" required>
-      </div>
-    <br>
-    <br>
-    <div class="input-group mb-3" style="text-align:center;">
-      <span class="input-group-text" id="basic-addon1">
-        <i class="fa-sharp fa-regular fa-id-card"></i>
-      </span>
-      <input type="date" class="form-control" name="item_date" placeholder="Pick the date you found it" aria-describedby="basic-addon1" required>
-    </div>
-    <br>
-    <br>
-    <div class="input-group" style="text-align:center;">
-      <span class="input-group-text" id="basic-addon1">
-      </span>
-        <textarea id="myTextarea" name="item_description" rows="4" cols="50">
-        
-        </textarea>
-    </div>
-    <br>
-    <br>
-    <div style="text-align:center;">
-      <button type="submit">Report</button>
-    </div>
-</form>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.min.js"></script>
 {% endblock %}
+
