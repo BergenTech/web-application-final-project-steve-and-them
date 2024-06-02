@@ -18,7 +18,14 @@
 </style>
 <tbody>
   <br>
-  {%for item in items%}
+  <br>
+  <br>
+  <div class="col-md-12 text-center">
+    <a href="{{ url_for('inventory', page=page, items_per_page=items_per_page, sort_by_name='asc') }}" class="btn btn-secondary {% if sort_by_name == 'asc' %}active{% endif %}">Sort A-Z</a>
+    <a href="{{ url_for('inventory', page=page, items_per_page=items_per_page, sort_by_name='desc') }}" class="btn btn-secondary {% if sort_by_name == 'desc' %}active{% endif %}">Sort Z-A</a>
+  </div>
+  <br>
+  {%for item in items.items%}
   <br>
   <br>
   <div class="card-container">

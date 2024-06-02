@@ -38,10 +38,10 @@ class User(db.Model):
     
 class Item(db.Model):
     id = db.Column(db.Integer, primary_key = True)
-    name = db.Column(db.String(50), unique=True)
+    name = db.Column(db.String(50))
     # image = db.Column(db.Image)
     date = db.Column(db.Date)
-    description = db.Column(db.String(255), unique=True)
+    description = db.Column(db.String(255))
 
     def __repr__(self):
         return f"Book: {self.name}"
@@ -160,7 +160,7 @@ def reportItem():
             return render_template("report.html")
         except IntegrityError:
             db.session.rollback()
-            flash("The book is already in the inventory!", "warning")
+            flash("The item is already in the inventory!", "warning")
             return render_template("report.html")
 
 def get_page_range(current_page, total_pages, max_page_buttons=5):
@@ -180,8 +180,14 @@ def get_page_range(current_page, total_pages, max_page_buttons=5):
 def inventory():
     page = request.args.get("page", 1, type=int)
     items_per_page = request.args.get("items_per_page", 20, type=int)
-    items = Item.query.order_by(asc(Item.id)).paginate(page = page, per_page = items_per_page, error_out = False)
-    return render_template("inventory.html", items = items, get_page_range = get_page_range, items_per_page = items_per_page)
+    sort_by_name = request.args.get("sort_by_name", "asc")
+
+    if sort_by_name == "asc":
+        items = Item.query.order_by(asc(Item.name)).paginate(page=page, per_page=items_per_page, error_out=False)
+    else:
+        items = Item.query.order_by(desc(Item.name)).paginate(page=page, per_page=items_per_page, error_out=False)
+
+    return render_template("inventory.html", items=items, sort_by_name=sort_by_name, items_per_page=items_per_page)
 
 if __name__ == '__main__':
     app.run(debug=True)
