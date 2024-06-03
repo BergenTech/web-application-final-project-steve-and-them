@@ -1,13 +1,13 @@
-{%extends "base.html"%}
-{%block title%}Inventory{%endblock%}
-{%set active_page = 'inventory'%}
-{%block content%}
-<link rel="stylesheet" href="static/assets/css/bootstrap-5.0.0-alpha-2.min.css" />
-<link rel="stylesheet" href="static/assets/css/LineIcons.2.0.css" />
-<link rel="stylesheet" href="static/assets/css/animate.css" />
-<link rel="stylesheet" href="static/assets/css/lindy-uikit.css" />
-<link rel="stylesheet" href="static/assets/css/style.css">
-<link rel="stylesheet" href="static/assets/css/signin.css">
+{% extends "base.html" %}
+{% block title %}Inventory{% endblock %}
+{% set active_page = 'inventory' %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap-5.0.0-alpha-2.min.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/LineIcons.2.0.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/animate.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/lindy-uikit.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/signin.css') }}">
 
 <style>
   .card-container {
@@ -16,31 +16,68 @@
     align-items: center;
   }
 </style>
-<tbody>
-  <br>
-  <br>
-  <br>
-  <div class="col-md-12 text-center">
-    <a href="{{ url_for('inventory', page=page, items_per_page=items_per_page, sort_by_name='asc') }}" class="btn btn-secondary {% if sort_by_name == 'asc' %}active{% endif %}">Sort A-Z</a>
-    <a href="{{ url_for('inventory', page=page, items_per_page=items_per_page, sort_by_name='desc') }}" class="btn btn-secondary {% if sort_by_name == 'desc' %}active{% endif %}">Sort Z-A</a>
-  </div>
-  <br>
-  {%for item in items.items%}
-  <br>
-  <br>
-  <div class="card-container">
-    <div class="card" style="width: 400px;">
-      <img class="card-img-top" src="{{item_image}}" alt="Card image">
-      <div class="card-body">
-        <h4 class="card-title">{{item.name}}</h4>
-        <p class="card-text">{{item.description}}</p>
-        <a href="#" class="btn btn-primary">Check Out</a>
-      </div>
+<br>
+<br>
+<p class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Inventory</p>
+<br>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 text-center">
+      <a href="{{ url_for('inventory', page=page, items_per_page=items_per_page, sort_by_name='asc') }}" class="btn btn-secondary {% if sort_by_name == 'asc' %}active{% endif %}">Sort A-Z</a>
+      <a href="{{ url_for('inventory', page=page, items_per_page=items_per_page, sort_by_name='desc') }}" class="btn btn-secondary {% if sort_by_name == 'desc' %}active{% endif %}">Sort Z-A</a>
     </div>
   </div>
-  {%endfor%}
-</tbody>
- 
 
+  <br>
+  <br>
 
-{%endblock%}
+  <nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+      {% if items.has_prev %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('inventory', page=items.prev_num, items_per_page=items_per_page, sort_by_name=sort_by_name) }}">Previous</a>
+      </li>
+      {% endif %}
+      {% for page_num in items.iter_pages() %}
+      {% if page_num %}
+      <li class="page-item {% if page_num == items.page %}active{% endif %}">
+        <a class="page-link" href="{{ url_for('inventory', page=page_num, items_per_page=items_per_page, sort_by_name=sort_by_name) }}">{{ page_num }}</a>
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link">...</span></li>
+      {% endif %}
+      {% endfor %}
+      {% if items.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('inventory', page=items.next_num, items_per_page=items_per_page, sort_by_name=sort_by_name) }}">Next</a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+
+  <br>
+  <div class="row">
+    {% for item in items.items %}
+    <div class="col-md-4 card-container">
+      <div class="card" style="width: 18rem;">
+        {% if item.image_base64 %}
+        <img src="data:image/jpeg;base64,{{ item.image_base64 }}" class="card-img-top" alt="{{ item.name }}">
+        {% else %}
+        <img class="card-img-top" src="https://media.forgecdn.net/avatars/thumbnails/959/541/256/256/638454598013635961.png" alt="Card image">
+        {% endif %}
+        <div class="card-body">
+          <h5 class="card-title">Item name: {{ item.name }}</h5>
+          <p class="card-text">Item discovered location: {{ item.discovered_location }}</p>
+          <p>Discovered date: {{ item.date }}</p>
+          <p class="card-text">Item current location: {{ item.current_location }}</p>
+          <p class="card-text">Description: {{ item.description }}</p>
+          <a href="#" class="btn btn-primary">Claim</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+

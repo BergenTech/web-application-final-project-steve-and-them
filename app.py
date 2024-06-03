@@ -5,16 +5,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
 import random, base64
 from datetime import datetime
-from sqlalchemy import desc, asc, inspect
+from sqlalchemy import asc, desc, func
 from flask_migrate import Migrate
 import os
 
 app = Flask(__name__)
 app.secret_key = os.urandom(12)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///library.db"
-# login_manager = LoginManager(app)
-# login_manager.login_view = 'login'
-
 
 db = SQLAlchemy(app)
 
@@ -23,8 +20,6 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = "Unauthorized Access! Please Login!"
 login_manager.login_message_category = "danger"
-
-
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -40,28 +35,30 @@ class User(db.Model, UserMixin):
     
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-    
-    # def __init__(self, id):
-    #     self.id = id
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
 class Item(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
-    # image = db.Column(db.Image)
+    image = db.Column(db.LargeBinary)
     date = db.Column(db.Date)
+    discovered_location = db.Column(db.String(50))
+    current_location = db.Column(db.String(50))
     description = db.Column(db.String(255))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    transactions = db.relationship('Transaction', backref='item', lazy=True)
 
-    def __repr__(self):
-        return f"Book: {self.name}"
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
 with app.app_context():
     db.create_all()
-
-
 
 @app.route('/')
 def home():
@@ -78,14 +75,6 @@ def register():
         confirm_password = request.form.get("confirm_password")
         profile_picture = request.files.get("profile_picture")
         role = request.form.get("role")
-
-        # print(f"first_name: {first_name}")
-        # print(f"last_name: {last_name}")
-        # print(f"email: {email}")
-        # print(f"password: {password}")
-        # print(f"confirm_password: {confirm_password}")
-        # print(f"profile_picture: {profile_picture}")
-        # print(f"role: {role}")
 
         # Validate form data
         if not (first_name and last_name and email and password and confirm_password and profile_picture and role):
@@ -136,9 +125,8 @@ def login():
             # Successful login
             flash('Login successful!', 'success')
             login_user(user)
+            session['registered'] = True
             # Redirect to a dashboard or profile page
-            if 'registered' in session:
-                session['logged_in'] = True
             return redirect(url_for('account'))  # Replace 'dashboard' with your route for dashboard or profile
         else:
             # Failed login
@@ -146,10 +134,6 @@ def login():
 
     # Render the login template
     return render_template('login.html')
-
-# @login_manager.user_loader
-# def load_user(user_id):
-#     return User.query.get(int(user_id))
 
 @app.route("/logout")
 @login_required
@@ -163,23 +147,85 @@ def logout():
 def account():
     if current_user.is_authenticated and current_user.profile_picture:
         image_data_b64 = base64.b64encode(current_user.profile_picture).decode('utf-8')
-        return render_template("account.html", user=current_user, profile_picture=image_data_b64)
-    return render_template("account.html", user=current_user, profile_picture=None)
+    else:
+        image_data_b64 = None
+
+    transactions = Transaction.query.filter_by(user_id=current_user.id).all()
+    return render_template("account.html", user=current_user, profile_picture=image_data_b64, transactions=transactions)
+
+@app.route('/update_profile', methods=['POST'])
+@login_required
+def update_profile():
+    user = current_user
+    user.first_name = request.form['first_name']
+    user.last_name = request.form['last_name']
+    user.email = request.form['email']
+    # Save the user object to the database
+    db.session.commit()
+    flash('Profile updated successfully', 'success')
+    return redirect(url_for('account'))
+
+@app.route('/change_password', methods=['POST'])
+@login_required
+def change_password():
+    user = current_user
+    old_password = request.form['old_password']
+    new_password = request.form['new_password']
+    confirm_new_password = request.form['confirm_new_password']
+    
+    if not user.check_password(old_password):
+        flash('Old password is incorrect', 'danger')
+        return redirect(url_for('account'))
+    
+    if new_password != confirm_new_password:
+        flash('New passwords do not match', 'danger')
+        return redirect(url_for('account'))
+    
+    user.set_password(new_password)
+    # Save the user object to the database
+    db.session.commit()
+    flash('Password changed successfully', 'success')
+    return redirect(url_for('account'))
 
 @app.route("/report", methods=["POST", "GET"])
+@login_required
 def reportItem():
     if request.method == "GET":
         return render_template("report.html")
     elif request.method == "POST":
         try:
+            name = request.form["item_name"]
+            image = request.files.get("image")
+            date = datetime.strptime(request.form["item_date"], "%Y-%m-%d").date()
+            discovered_location = request.form["discovered_location"]
+            current_location = request.form["current_location"]
+            description = request.form["item_description"]
+
+            image_data = image.read()
+            if not isinstance(image_data, (bytes, bytearray)):
+                flash("Image data is not in binary format", "danger")
+                return render_template("report.html")
+
             new_item = Item(
-                name = request.form["item_name"],
-                # image = request.form["item_image"],
-                date = datetime.strptime(request.form["item_date"], "%Y-%m-%d").date(),
-                description = request.form["item_description"]
+                name=name,
+                image=image_data,
+                date=date,
+                discovered_location=discovered_location,
+                current_location=current_location,
+                description=description,
+                user_id=current_user.id
             )
             db.session.add(new_item)
             db.session.commit()
+
+            # Log the transaction
+            new_transaction = Transaction(
+                item_id=new_item.id,
+                user_id=current_user.id
+            )
+            db.session.add(new_transaction)
+            db.session.commit()
+
             flash("Item has been added successfully!", "success")
             return render_template("report.html")
         except IntegrityError:
@@ -203,13 +249,17 @@ def get_page_range(current_page, total_pages, max_page_buttons=5):
 @app.route("/inventory")
 def inventory():
     page = request.args.get("page", 1, type=int)
-    items_per_page = request.args.get("items_per_page", 20, type=int)
+    items_per_page = request.args.get("items_per_page", 12, type=int)
     sort_by_name = request.args.get("sort_by_name", "asc")
 
     if sort_by_name == "asc":
-        items = Item.query.order_by(asc(Item.name)).paginate(page=page, per_page=items_per_page, error_out=False)
+        items = Item.query.order_by(asc(func.lower(Item.name))).paginate(page=page, per_page=items_per_page, error_out=False)
     else:
-        items = Item.query.order_by(desc(Item.name)).paginate(page=page, per_page=items_per_page, error_out=False)
+        items = Item.query.order_by(desc(func.lower(Item.name))).paginate(page=page, per_page=items_per_page, error_out=False)
+
+    for item in items.items:
+        if item.image:
+            item.image_base64 = base64.b64encode(item.image).decode('utf-8')
 
     return render_template("inventory.html", items=items, sort_by_name=sort_by_name, items_per_page=items_per_page)
 

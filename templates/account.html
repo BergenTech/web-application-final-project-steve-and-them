@@ -3,12 +3,6 @@
 {% block title %}Account{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="static/assets/css/bootstrap-5.0.0-alpha-2.min.css" />
-<link rel="stylesheet" href="static/assets/css/LineIcons.2.0.css" />
-<link rel="stylesheet" href="static/assets/css/animate.css" />
-<link rel="stylesheet" href="static/assets/css/lindy-uikit.css" />
-<link rel="stylesheet" href="static/assets/css/style.css">
-<link rel="stylesheet" href="static/assets/css/signin.css">
 <style>
     .profile-pic {
         width: 150px;
@@ -21,8 +15,6 @@
     }
 </style>
 <div class="container">
-  <br>
-  <br>
   <p class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Account</p>
   <div class="row d-flex justify-content-center align-items-center h-100">
     <div class="col-lg-12 col-xl-11">
@@ -39,18 +31,45 @@
               {% endfor %}
               {% endif %}
               {% endwith %}
-              <a href="/logout" rel="nofollow" target="blank" class="btn btn-lg btn-primary radius-10 wow fadeInUp" data-wow-delay=".7s"> Logout </a>
+              <a href="{{ url_for('logout') }}" class="btn btn-lg btn-primary radius-10"> Logout </a>
               <div class="d-flex justify-content-center">
               {% if profile_picture %}
-              <img class="rounded-circle mt-5" class="hoverable-image" width="200px" height="200px"src="data:image/png;base64,{{ profile_picture }}" alt="User Image">
+              <img class="rounded-circle mt-5 profile-pic" src="data:image/png;base64,{{ profile_picture }}" alt="User Image">
               {% else %}
-              <img class="rounded-circle mt-5" class="hoverable-image" width="300px" height="200px src="default_profile_picture.png" alt="User Image">
+              <img class="rounded-circle mt-5 profile-pic" src="default_profile_picture.png" alt="User Image">
               {% endif %}
               </div>
+              <div id="profile-display">
                 <p><strong>First Name:</strong> {{ user.first_name }}</p>
                 <p><strong>Last Name:</strong> {{ user.last_name }}</p>
                 <p><strong>Email:</strong> {{ user.email }}</p>
                 <p><strong>Password:</strong> <span class="blurred-password">{{ '•' * 8 }}</span></p>
+                <button id="edit-profile-btn" class="btn btn-lg btn-primary radius-10">Edit Profile</button>
+                <br>
+                <br>
+              </div>
+              <form id="edit-profile-form" action="/update_profile" method="POST" style="display:none;">
+                <p><strong>First Name:</strong> <input type="text" name="first_name" placeholder="{{ user.first_name }}" value="{{ user.first_name }}"></p>
+                <p><strong>Last Name:</strong> <input type="text" name="last_name" placeholder="{{ user.last_name }}" value="{{ user.last_name }}"></p>
+                <p><strong>Email:</strong> <input type="email" name="email" placeholder="{{ user.email }}" value="{{ user.email }}"></p>
+                <button type="submit" class="btn btn-lg btn-primary radius-10">Update Profile</button>
+              </form>
+              <form action="/change_password" method="POST">
+                <p><strong>Old Password:</strong> <input type="password" name="old_password"></p>
+                <p><strong>New Password:</strong> <input type="password" name="new_password"></p>
+                <p><strong>Confirm New Password:</strong> <input type="password" name="confirm_new_password"></p>
+                <button type="submit" class="btn btn-lg btn-primary radius-10">Change Password</button>
+              </form>
+              <h3 class="mt-5">Recent Transactions</h3>
+              {% if transactions %}
+              <ul>
+                {% for transaction in transactions %}
+                <li>{{ transaction.item.name }} - {{ transaction.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p>No recent transactions.</p>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -58,4 +77,10 @@
     </div>
   </div>
 </div>
+<script>
+  document.getElementById('edit-profile-btn').addEventListener('click', function() {
+    document.getElementById('profile-display').style.display = 'none';
+    document.getElementById('edit-profile-form').style.display = 'block';
+  });
+</script>
 {% endblock %}
