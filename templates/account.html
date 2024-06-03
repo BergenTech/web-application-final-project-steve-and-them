@@ -20,37 +20,42 @@
         filter: blur(5px);
     }
 </style>
-<div class="container ">
+<div class="container">
   <br>
   <br>
   <p class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Account</p>
-    <div class="row d-flex justify-content-center align-items-center h-100">
-      <div class="col-lg-12 col-xl-11">
-        <div class="card text-black" style="border-radius: 25px;">
-          <div class="card-body p-md-5">
-            <div class="row justify-content-center">
-              <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                   <strong>{{ message }}</strong>
-                </div>
-                {% endfor %}
-                {% endif %}
-                {% endwith %}
-                <p><strong>First Name:</strong></p>
-                <p><strong>Last Name:</strong> </p>
-                <p><strong>Email:</strong> </p>
-                <p><strong>Password:</strong> <span class="blurred-password">{{ '•' * 8 }}</span></p>
-
-                <img src="https://upload.wikimedia.org/wikipedia/en/6/6e/Bergen_County_Technical_High_School_-_Teterboro_Campus_Logo.png"
-                  class="img-fluid" alt="Sample image">
+  <div class="row d-flex justify-content-center align-items-center h-100">
+    <div class="col-lg-12 col-xl-11">
+      <div class="card text-black" style="border-radius: 25px;">
+        <div class="card-body p-md-5">
+          <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
+              {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+              {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                 <strong>{{ message }}</strong>
               </div>
+              {% endfor %}
+              {% endif %}
+              {% endwith %}
+              <a href="/logout" rel="nofollow" target="blank" class="btn btn-lg btn-primary radius-10 wow fadeInUp" data-wow-delay=".7s"> Logout </a>
+              <div class="d-flex justify-content-center">
+              {% if profile_picture %}
+              <img class="rounded-circle mt-5" class="hoverable-image" width="200px" height="200px"src="data:image/png;base64,{{ profile_picture }}" alt="User Image">
+              {% else %}
+              <img class="rounded-circle mt-5" class="hoverable-image" width="300px" height="200px src="default_profile_picture.png" alt="User Image">
+              {% endif %}
+              </div>
+                <p><strong>First Name:</strong> {{ user.first_name }}</p>
+                <p><strong>Last Name:</strong> {{ user.last_name }}</p>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>Password:</strong> <span class="blurred-password">{{ '•' * 8 }}</span></p>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 {% endblock %}

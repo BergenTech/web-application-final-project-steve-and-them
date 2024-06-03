@@ -1,84 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
+{% block title %} HOME PAGE {% endblock %}
+{% set active_page = 'home' %}
+{% block content %}
 <head>
-<title>Bergen Tech Lost and Found</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<link rel="stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles.css') }}">
-<link rel="stylesheet" href="static/assets/css/bootstrap-5.0.0-alpha-2.min.css" />
-<link rel="stylesheet" href="static/assets/css/LineIcons.2.0.css" />
-<link rel="stylesheet" href="static/assets/css/animate.css" />
-<link rel="stylesheet" href="static/assets/css/lindy-uikit.css" />
-<link rel="stylesheet" href="static/assets/css/style.css">
-<link rel="stylesheet" href="static/assets/css/signin.css">
-<style>
-body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
-.w3-bar,h1,button {font-family: "Montserrat", sans-serif}
-.fa-anchor,.fa-coffee {font-size:200px}
-</style>
+    <title>Bergen Tech Lost and Found</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="static/assets/css/bootstrap-5.0.0-alpha-2.min.css" />
+    <link rel="stylesheet" href="static/assets/css/LineIcons.2.0.css" />
+    <link rel="stylesheet" href="static/assets/css/animate.css" />
+    <link rel="stylesheet" href="static/assets/css/lindy-uikit.css" />
+    <link rel="stylesheet" href="static/assets/css/style.css">
+    <link rel="stylesheet" href="static/assets/css/signin.css">
+    <style>
+        body, h1, h2, h3, h4, h5, h6 {font-family: "Lato", sans-serif}
+        .w3-bar, h1, button {font-family: "Montserrat", sans-serif}
+        .fa-anchor, .fa-coffee {font-size:200px}
+    </style>
 </head>
 <body>
 
 <!-- Navbar -->
 <div class="w3-top">
-  <div class="w3-bar w3-red w3-card w3-left-align w3-large">
-    <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
-    <a href="/" class="w3-bar-item w3-button w3-padding-large w3-white">Home</a>
-    {%if not session.get('registered')%}
-    <a href="/register" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Register</a>
-    {%endif%}
-    {% if session.get('registered') and not session.get('logged_in') %}
-    <a href="/login" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Login</a>
-    {%endif%}
-    <a href="/inventory" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Access the Lost and Found</a>
-    {% if session.get('logged_in') %}
-    <a href="/report" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Report a Missing Item</a>
-    <a href="/account" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Account</a>
-    <a href="/contact" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Contact</a>
-    {%endif%}
-  </div>
+    <div class="w3-bar w3-red w3-card w3-left-align w3-large">
+        <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
+        <a href="/" class="w3-bar-item w3-button w3-padding-large w3-white">Home</a>
+        {% if not session.get('registered') or if not current_user.is_authenticated%}
+        <a href="/register" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Register</a>
+        {% endif %}
+        {%if not current_user.is_authenticated%}
+        <a href="/login" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Login</a>
+        {%endif%}
+        <a href="/inventory" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Access the Lost and Found</a>
+        {% if session.get('logged_in') %}
+        <a href="/report" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Report a Missing Item</a>
+        <a href="/account" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Account</a>
+        <a href="/contact" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Contact</a>
+        {% endif %}
+    </div>
 
-  <!-- Navbar on small screens -->
-  <div id="navDemo" class="w3-bar-block w3-white w3-hide w3-hide-large w3-hide-medium w3-large">
-    <a href="/" class="w3-bar-item w3-button w3-padding-large w3-white">Home</a>
-    {%if not session.get('registered')%}
-    <a href="/register" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Register</a>
-    {%endif%}
-    {% if session.get('registered') and not session.get('logged_in') %}
-    <a href="/login" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Login</a>
-    {%endif%}
-    <a href="/inventory" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Access the Lost and Found</a>
-    {% if session.get('logged_in') %}
-    <a href="/report" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Report a Missing Item</a>
-    <a href="/account" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Account</a>
-    <a href="/contact" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Contact</a>
-    {%endif%}
-  </div>
+    <!-- Navbar on small screens -->
+    <div id="navDemo" class="w3-bar-block w3-white w3-hide w3-hide-large w3-hide-medium w3-large">
+        <a href="/" class="w3-bar-item w3-button w3-padding-large w3-white">Home</a>
+        {% if not session.get('registered') %}
+        <a href="/register" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Register</a>
+        {% endif %}
+        {% if not current_user.is_authenticated %}
+        <a href="/login" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Login</a>
+        {% endif %}
+        <a href="/inventory" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Access the Lost and Found</a>
+        {% if current_user.is_authenticated %}
+        <a href="/report" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Report a Missing Item</a>
+        <a href="/account" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Account</a>
+        <a href="/contact" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Contact</a>
+        <a href="/logout" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Logout</a>
+        {% endif %}
+    </div>
 </div>
 
 <!-- Header -->
 <header class="w3-container w3-red w3-center" style="padding:128px 16px">
-  <h1 class="w3-margin w3-jumbo">Bergen Tech Lost and Found</h1>
-  <!-- <button class="w3-button w3-black w3-padding-large w3-large w3-margin-top" actio">Get Started</button> -->
+    <h1 class="w3-margin w3-jumbo">Bergen Tech Lost and Found</h1>
+    <!-- <button class="w3-button w3-black w3-padding-large w3-large w3-margin-top">Get Started</button> -->
+    <br>
+    <br>
+    {% if current_user.is_authenticated %}
+    <h2 class="w3-margin display-4">Hello, {{ current_user.first_name }}!</h2>
+    {% endif %}
 </header>
+
+<!-- Flashed Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="row d-flex justify-content-center align-items-center h-100">
+    <div class="col-lg-12 col-xl-11">
+        <!-- <div class="card text-black" style="border-radius: 25px;"> -->
+            <div class="card-body p-md-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
+                        {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            <strong>{{ message }}</strong>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        <!-- </div> -->
+    </div>
+</div>
+{% endif %}
+{% endwith %}
 
 <!-- First Grid -->
 <div class="w3-row-padding w3-padding-64 w3-container">
-  <div class="w3-content">
-    <div class="w3-twothird">
-      <h1> Not your traditional Lost and Found</h1>
-  
-      <p class="w3-text-grey">Report items you found, access the Lost and Found for items you may be missing, and see your full history of interaction with the Lost and Found.</p>
+    <div class="w3-content">
+        <div class="w3-twothird">
+            <h1>Not your traditional Lost and Found</h1>
+            <p class="w3-text-grey">Report items you found, access the Lost and Found for items you may be missing, and see your full history of interaction with the Lost and Found.</p>
+        </div>
+        <div class="w3-third w3-center">
+            <i class="fa fa-anchor w3-padding-64 w3-text-red"></i>
+        </div>
     </div>
-
-    <div class="w3-third w3-center">
-      <i class="fa fa-anchor w3-padding-64 w3-text-red"></i>
-    </div>
-  </div>
 </div>
 
 <div class="w3-container w3-black w3-center w3-opacity w3-padding-64">
@@ -101,14 +130,14 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
 <script>
 // Used to toggle the menu on small screens when clicking on the menu button
 function myFunction() {
-  var x = document.getElementById("navDemo");
-  if (x.className.indexOf("w3-show") == -1) {
-    x.className += " w3-show";
-  } else { 
-    x.className = x.className.replace(" w3-show", "");
-  }
+    var x = document.getElementById("navDemo");
+    if (x.className.indexOf("w3-show") == -1) {
+        x.className += " w3-show";
+    } else {
+        x.className = x.className.replace(" w3-show", "");
+    }
 }
 </script>
 
 </body>
-</html>
+{% endblock %}

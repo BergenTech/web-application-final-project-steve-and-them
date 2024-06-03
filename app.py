@@ -14,14 +14,19 @@ app.secret_key = os.urandom(12)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///library.db"
 # login_manager = LoginManager(app)
 # login_manager.login_view = 'login'
-# login_manager.login_message = "Unauthorized Access! Please Login!"
-# login_manager.login_message_category = "danger"
+
 
 db = SQLAlchemy(app)
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = "Unauthorized Access! Please Login!"
+login_manager.login_message_category = "danger"
 
 
-class User(db.Model):
+
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(80), nullable=False)
     last_name = db.Column(db.String(80), nullable=False)
@@ -36,6 +41,13 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
     
+    # def __init__(self, id):
+    #     self.id = id
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 class Item(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(50))
@@ -67,13 +79,13 @@ def register():
         profile_picture = request.files.get("profile_picture")
         role = request.form.get("role")
 
-        print(f"first_name: {first_name}")
-        print(f"last_name: {last_name}")
-        print(f"email: {email}")
-        print(f"password: {password}")
-        print(f"confirm_password: {confirm_password}")
-        print(f"profile_picture: {profile_picture}")
-        print(f"role: {role}")
+        # print(f"first_name: {first_name}")
+        # print(f"last_name: {last_name}")
+        # print(f"email: {email}")
+        # print(f"password: {password}")
+        # print(f"confirm_password: {confirm_password}")
+        # print(f"profile_picture: {profile_picture}")
+        # print(f"role: {role}")
 
         # Validate form data
         if not (first_name and last_name and email and password and confirm_password and profile_picture and role):
@@ -123,6 +135,7 @@ def login():
         if user and user.check_password(password):
             # Successful login
             flash('Login successful!', 'success')
+            login_user(user)
             # Redirect to a dashboard or profile page
             if 'registered' in session:
                 session['logged_in'] = True
@@ -138,9 +151,20 @@ def login():
 # def load_user(user_id):
 #     return User.query.get(int(user_id))
 
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash("Logged out successfully", "success")
+    return render_template("index.html")
+
 @app.route('/account')
+@login_required
 def account():
-    return render_template("account.html")
+    if current_user.is_authenticated and current_user.profile_picture:
+        image_data_b64 = base64.b64encode(current_user.profile_picture).decode('utf-8')
+        return render_template("account.html", user=current_user, profile_picture=image_data_b64)
+    return render_template("account.html", user=current_user, profile_picture=None)
 
 @app.route("/report", methods=["POST", "GET"])
 def reportItem():
