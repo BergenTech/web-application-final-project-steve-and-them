@@ -3,6 +3,12 @@
 {% block title %}Account{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap-5.0.0-alpha-2.min.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/LineIcons.2.0.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/animate.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/lindy-uikit.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/signin.css') }}">
 <style>
     .profile-pic {
         width: 150px;
@@ -15,6 +21,8 @@
     }
 </style>
 <div class="container">
+  <br>
+  <br>
   <p class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Account</p>
   <div class="row d-flex justify-content-center align-items-center h-100">
     <div class="col-lg-12 col-xl-11">
@@ -45,8 +53,6 @@
                 <p><strong>Email:</strong> {{ user.email }}</p>
                 <p><strong>Password:</strong> <span class="blurred-password">{{ '•' * 8 }}</span></p>
                 <button id="edit-profile-btn" class="btn btn-lg btn-primary radius-10">Edit Profile</button>
-                <br>
-                <br>
               </div>
               <form id="edit-profile-form" action="/update_profile" method="POST" style="display:none;">
                 <p><strong>First Name:</strong> <input type="text" name="first_name" placeholder="{{ user.first_name }}" value="{{ user.first_name }}"></p>
@@ -60,6 +66,7 @@
                 <p><strong>Confirm New Password:</strong> <input type="password" name="confirm_new_password"></p>
                 <button type="submit" class="btn btn-lg btn-primary radius-10">Change Password</button>
               </form>
+
               <h3 class="mt-5">Recent Transactions</h3>
               {% if transactions %}
               <ul>
@@ -69,6 +76,17 @@
               </ul>
               {% else %}
               <p>No recent transactions.</p>
+              {% endif %}
+
+              <h3 class="mt-5">Recent Items Claimed</h3>
+              {% if recent_claimed_items %}
+              <ul>
+                {% for item in recent_claimed_items %}
+                <li>{{ item.name }} - {{ item.claimed_date.strftime('%Y-%m-%d %H:%M:%S') }}</li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p>No recently claimed items.</p>
               {% endif %}
             </div>
           </div>

@@ -3,10 +3,9 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
-import random, base64
+import base64
 from datetime import datetime
 from sqlalchemy import asc, desc, func
-from flask_migrate import Migrate
 import os
 
 app = Flask(__name__)
@@ -56,6 +55,17 @@ class Transaction(db.Model):
     item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+class ClaimedItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50))
+    image = db.Column(db.LargeBinary)
+    date = db.Column(db.Date)
+    discovered_location = db.Column(db.String(50))
+    current_location = db.Column(db.String(50))
+    description = db.Column(db.String(255))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    claimed_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
 with app.app_context():
     db.create_all()
@@ -150,8 +160,19 @@ def account():
     else:
         image_data_b64 = None
 
-    transactions = Transaction.query.filter_by(user_id=current_user.id).all()
-    return render_template("account.html", user=current_user, profile_picture=image_data_b64, transactions=transactions)
+    # Retrieve transactions for items that are not claimed
+    transactions = db.session.query(Transaction).join(Item).filter(
+        Transaction.user_id == current_user.id,
+        ~db.session.query(ClaimedItem).filter(ClaimedItem.name == Item.name).exists()
+    ).all()
+    
+    claimed_items = ClaimedItem.query.filter_by(user_id=current_user.id).all()
+
+    return render_template("account.html", user=current_user, profile_picture=image_data_b64, transactions=transactions, recent_claimed_items=claimed_items)
+
+
+
+
 
 @app.route('/update_profile', methods=['POST'])
 @login_required
@@ -213,7 +234,7 @@ def reportItem():
                 discovered_location=discovered_location,
                 current_location=current_location,
                 description=description,
-                user_id=current_user.id
+                user_id=current_user.id  # Set the user_id to the current user's ID
             )
             db.session.add(new_item)
             db.session.commit()
@@ -221,7 +242,8 @@ def reportItem():
             # Log the transaction
             new_transaction = Transaction(
                 item_id=new_item.id,
-                user_id=current_user.id
+                user_id=current_user.id,
+                timestamp=datetime.utcnow()
             )
             db.session.add(new_transaction)
             db.session.commit()
@@ -233,18 +255,37 @@ def reportItem():
             flash("The item is already in the inventory!", "warning")
             return render_template("report.html")
 
-def get_page_range(current_page, total_pages, max_page_buttons=5):
-    if total_pages <= max_page_buttons:
-        return range(1, total_pages+1)
-    
-    half_buttons = max_page_buttons // 2
-    if current_page <= half_buttons:
-        return range(1, max_page_buttons + 1)
-    
-    if current_page >= total_pages - half_buttons:
-        return range(total_pages - max_page_buttons + 1, total_pages + 1)
 
-    return range(current_page - half_buttons, current_page + half_buttons + 1)
+
+@app.route("/claim_item/<int:item_id>")
+@login_required
+def claim_item(item_id):
+    item = Item.query.get_or_404(item_id)
+    try:
+        # Create a new claimed item
+        claimed_item = ClaimedItem(
+            name=item.name,
+            image=item.image,
+            date=item.date,
+            discovered_location=item.discovered_location,
+            current_location=item.current_location,
+            description=item.description,
+            user_id=current_user.id,
+            claimed_date=datetime.utcnow()
+        )
+        db.session.add(claimed_item)
+        
+        # Now delete the item from the inventory
+        db.session.delete(item)
+        db.session.commit()
+        
+        flash("Item claimed successfully!", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"An error occurred: {str(e)}", "danger")
+    return redirect(url_for('inventory'))
+
+
 
 @app.route("/inventory")
 def inventory():

@@ -72,12 +72,23 @@
           <p>Discovered date: {{ item.date }}</p>
           <p class="card-text">Item current location: {{ item.current_location }}</p>
           <p class="card-text">Description: {{ item.description }}</p>
-          <a href="#" class="btn btn-primary">Claim</a>
+          <button class="btn btn-primary claim-btn" data-item-id="{{ item.id }}">Claim</button>
         </div>
       </div>
     </div>
     {% endfor %}
   </div>
 </div>
-{% endblock %}
 
+<script>
+  document.querySelectorAll('.claim-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const itemId = this.getAttribute('data-item-id');
+      if (confirm('Are you sure you want to claim this item?')) {
+        window.location.href = `/claim_item/${itemId}`;
+      }
+    });
+  });
+</script>
+
+{% endblock %}
