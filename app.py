@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, flash, url_for, redirect, session
+from flask import Flask, render_template, request, flash, url_for, redirect, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -7,6 +7,7 @@ import base64
 from datetime import datetime
 from sqlalchemy import asc, desc, func
 import os
+from sqlalchemy.orm import aliased
 
 app = Flask(__name__)
 app.secret_key = os.urandom(12)
@@ -35,6 +36,14 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    subject = db.Column(db.String(100), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    sent_date = db.Column(db.String(50), nullable=False)
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -49,6 +58,7 @@ class Item(db.Model):
     description = db.Column(db.String(255))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     transactions = db.relationship('Transaction', backref='item', lazy=True)
+    claimed = db.Column(db.Boolean, default = False)
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -69,6 +79,9 @@ class ClaimedItem(db.Model):
 
 with app.app_context():
     db.create_all()
+
+def get_users_by_last_name(last_name, current_user_id):
+    return User.query.filter(User.last_name.ilike(f'%{last_name}%'), User.id != current_user_id).all()
 
 @app.route('/')
 def home():
@@ -160,19 +173,10 @@ def account():
     else:
         image_data_b64 = None
 
-    # Retrieve transactions for items that are not claimed
-    transactions = db.session.query(Transaction).join(Item).filter(
-        Transaction.user_id == current_user.id,
-        ~db.session.query(ClaimedItem).filter(ClaimedItem.name == Item.name).exists()
-    ).all()
-    
+    transactions = Transaction.query.filter_by(user_id=current_user.id).all()
     claimed_items = ClaimedItem.query.filter_by(user_id=current_user.id).all()
 
     return render_template("account.html", user=current_user, profile_picture=image_data_b64, transactions=transactions, recent_claimed_items=claimed_items)
-
-
-
-
 
 @app.route('/update_profile', methods=['POST'])
 @login_required
@@ -221,6 +225,7 @@ def reportItem():
             discovered_location = request.form["discovered_location"]
             current_location = request.form["current_location"]
             description = request.form["item_description"]
+    
 
             image_data = image.read()
             if not isinstance(image_data, (bytes, bytearray)):
@@ -255,37 +260,27 @@ def reportItem():
             flash("The item is already in the inventory!", "warning")
             return render_template("report.html")
 
-
-
 @app.route("/claim_item/<int:item_id>")
 @login_required
 def claim_item(item_id):
-    item = Item.query.get_or_404(item_id)
-    try:
-        # Create a new claimed item
-        claimed_item = ClaimedItem(
-            name=item.name,
-            image=item.image,
-            date=item.date,
-            discovered_location=item.discovered_location,
-            current_location=item.current_location,
-            description=item.description,
-            user_id=current_user.id,
-            claimed_date=datetime.utcnow()
-        )
-        db.session.add(claimed_item)
-        
-        # Now delete the item from the inventory
-        db.session.delete(item)
-        db.session.commit()
-        
-        flash("Item claimed successfully!", "success")
-    except Exception as e:
-        db.session.rollback()
-        flash(f"An error occurred: {str(e)}", "danger")
+    item = Item.query.get(item_id)
+    item.claimed = True
+    db.session.commit()
+
     return redirect(url_for('inventory'))
 
+def get_page_range(current_page, total_pages, max_page_buttons=5):
+    if total_pages <= max_page_buttons:
+        return range(1, total_pages+1)
+    
+    half_buttons = max_page_buttons // 2
+    if current_page <= half_buttons:
+        return range(1, max_page_buttons + 1)
+    
+    if current_page >= total_pages - half_buttons:
+        return range(total_pages - max_page_buttons + 1, total_pages + 1)
 
+    return range(current_page - half_buttons, current_page + half_buttons + 1)
 
 @app.route("/inventory")
 def inventory():
@@ -304,6 +299,43 @@ def inventory():
 
     return render_template("inventory.html", items=items, sort_by_name=sort_by_name, items_per_page=items_per_page)
 
+@app.route("/contact/<int:user_id>")
+@login_required
+def contact(user_id):
+    return render_template("contact.html", user_id=user_id)
+
+@app.route("/search_users/<int:user_id>", methods=["GET"])
+@login_required
+def search_users(user_id):
+    last_name = request.args.get("last_name", "")
+    users = get_users_by_last_name(last_name, user_id)
+    users_list = [{'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name} for user in users]
+    return jsonify(users_list)
+
+@app.route("/send_message/<int:receiver_id>", methods=["POST"])
+@login_required
+def send_message(receiver_id):
+    sender_id = request.form['sender_id']
+    subject = request.form['subject']
+    message = request.form['message']
+    sent_date = request.form['sent_date']
+    
+    new_message = Message(sender_id=sender_id, receiver_id=receiver_id, subject=subject, message=message, sent_date=sent_date)
+    db.session.add(new_message)
+    db.session.commit()
+    
+    flash('Message sent successfully!', 'success')
+    return redirect(url_for('contact', user_id=sender_id))
+
+@app.route("/messages/<int:user_id>")
+@login_required
+def received_messages(user_id):
+    user = User.query.get(user_id)
+    sender = aliased(User)
+    messages = db.session.query(Message, sender).filter(Message.receiver_id == user_id, Message.sender_id == sender.id).all()
+    return render_template("messages.html", user=user, messages=messages)
+
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
-    app.secret_key = "secret_key"

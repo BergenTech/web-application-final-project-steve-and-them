@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Contact{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap-5.0.0-alpha-2.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/LineIcons.2.0.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/animate.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/lindy-uikit.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/signin.css') }}">
+
+<div class="container">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+        <div class="col-lg-12 col-xl-11">
+            <div class="card text-black" style="border-radius: 25px;">
+                <div class="card-body p-md-5">
+                    <div class="row justify-content-center">
+                        <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
+                            {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                        <strong>{{ message }}</strong>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            {% endwith %}
+
+                            <p class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Contact</p>
+
+                            <!-- Search Bar -->
+                            <div class="input-group mb-3">
+                                <span class="input-group-text" id="basic-addon1">
+                                    <i class="fas fa-user fa-lg me-3 fa-fw"></i>
+                                </span>
+                                <input type="text" class="form-control" placeholder="Search by Last Name" id="last_name" aria-describedby="basic-addon1">
+                            </div>
+
+                            <!-- Results -->
+                            <ul id="results" class="list-group"></ul>
+
+                            <!-- Message Form -->
+                            <div id="messageForm" style="display: none;">
+                                <form action="" method="post" id="sendMessageForm">
+                                    <input type="hidden" name="sender_id" value="{{ current_user.id }}">
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text" id="basic-addon2">
+                                            <i class="fas fa-envelope fa-lg me-3 fa-fw"></i>
+                                        </span>
+                                        <input type="text" class="form-control" placeholder="Subject" name="subject" aria-describedby="basic-addon2" required>
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text" id="basic-addon3">
+                                            <i class="fas fa-edit fa-lg me-3 fa-fw"></i>
+                                        </span>
+                                        <textarea class="form-control" placeholder="Message" name="message" aria-describedby="basic-addon3" required></textarea>
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text" id="basic-addon4">
+                                            <i class="fas fa-calendar fa-lg me-3 fa-fw"></i>
+                                        </span>
+                                        <input type="text" class="form-control" placeholder="Sent Date" name="sent_date" aria-describedby="basic-addon4" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Send Message</button>
+                                </form>
+                            </div>
+
+                        </div>
+                        <div class="col-md-10 col-lg-6 col-xl-7 d-flex align-items-center order-1 order-lg-2">
+                            <img src="https://upload.wikimedia.org/wikipedia/en/6/6e/Bergen_County_Technical_High_School_-_Teterboro_Campus_Logo.png" class="img-fluid" alt="Sample image" style="width: 300px; height: 350px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('last_name').addEventListener('input', function() {
+        const lastName = this.value;
+        const userId = {{ current_user.id }};
+        if (lastName.length > 0) {
+            fetch(`/search_users/${userId}?last_name=${lastName}`)
+                .then(response => response.json())
+                .then(data => {
+                    const results = document.getElementById('results');
+                    results.innerHTML = '';
+                    data.forEach(user => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item';
+                        li.innerHTML = `<button class="btn btn-link" onclick="showMessageForm(${user.id})">${user.first_name} ${user.last_name}</button>`;
+                        results.appendChild(li);
+                    });
+                })
+                .catch(error => console.error('Error fetching search results:', error));
+        } else {
+            document.getElementById('results').innerHTML = '';
+        }
+    });
+
+    function showMessageForm(receiverId) {
+        const form = document.getElementById('sendMessageForm');
+        form.action = `/send_message/${receiverId}`;
+        document.getElementById('messageForm').style.display = 'block';
+    }
+</script>
+{% endblock %}

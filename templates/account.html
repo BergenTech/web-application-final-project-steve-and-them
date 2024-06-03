@@ -54,6 +54,7 @@
                 <p><strong>Password:</strong> <span class="blurred-password">{{ '•' * 8 }}</span></p>
                 <button id="edit-profile-btn" class="btn btn-lg btn-primary radius-10">Edit Profile</button>
               </div>
+              <br>
               <form id="edit-profile-form" action="/update_profile" method="POST" style="display:none;">
                 <p><strong>First Name:</strong> <input type="text" name="first_name" placeholder="{{ user.first_name }}" value="{{ user.first_name }}"></p>
                 <p><strong>Last Name:</strong> <input type="text" name="last_name" placeholder="{{ user.last_name }}" value="{{ user.last_name }}"></p>
@@ -67,7 +68,7 @@
                 <button type="submit" class="btn btn-lg btn-primary radius-10">Change Password</button>
               </form>
 
-              <h3 class="mt-5">Recent Transactions</h3>
+              <h3 class="mt-5">Recent Items Added</h3>
               {% if transactions %}
               <ul>
                 {% for transaction in transactions %}
@@ -78,7 +79,7 @@
               <p>No recent transactions.</p>
               {% endif %}
 
-              <h3 class="mt-5">Recent Items Claimed</h3>
+              <!-- <h3 class="mt-5">Recent Items Claimed</h3>
               {% if recent_claimed_items %}
               <ul>
                 {% for item in recent_claimed_items %}
@@ -87,7 +88,7 @@
               </ul>
               {% else %}
               <p>No recently claimed items.</p>
-              {% endif %}
+              {% endif %} -->
             </div>
           </div>
         </div>
