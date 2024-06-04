@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
+from flask_mail import Mail, Message as MailMessage
+from itsdangerous import URLSafeTimedSerializer
 import base64
 from datetime import datetime
 from sqlalchemy import asc, desc, func
@@ -12,7 +14,14 @@ from sqlalchemy.orm import aliased
 app = Flask(__name__)
 app.secret_key = os.urandom(12)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///library.db"
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'stevechoi268@gmail.com'
+app.config['MAIL_PASSWORD'] = 'dykd bnpa kshc lfpw'
+app.config['MAIL_DEFAULT_SENDER'] = 'stevechoi268@gmail.com'
 
+mail = Mail(app)
 db = SQLAlchemy(app)
 
 login_manager = LoginManager()
@@ -20,6 +29,8 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = "Unauthorized Access! Please Login!"
 login_manager.login_message_category = "danger"
+
+s = URLSafeTimedSerializer(app.secret_key)
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -29,6 +40,7 @@ class User(db.Model, UserMixin):
     profile_picture = db.Column(db.LargeBinary)
     role = db.Column(db.String(10), nullable=False)  # "student" or "teacher"
     password_hash = db.Column(db.String(128), nullable=False)
+    confirmed = db.Column(db.Boolean, default=False)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -36,7 +48,7 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-class Message(db.Model):
+class UserMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -87,6 +99,14 @@ def get_users_by_last_name(last_name, current_user_id):
 def home():
     return render_template('index.html')
 
+def send_email(to, subject, template):
+    msg = MailMessage(
+        subject=subject,
+        recipients=[to]
+    )
+    msg.html = template
+    mail.send(msg)
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -131,11 +151,36 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        flash("Account created successfully!", "success")
+        # Send verification email
+        token = s.dumps(email, salt='email-confirm')
+        confirm_url = url_for('confirm_email', token=token, _external=True)
+        html = render_template('email_confirmation.html', confirm_url=confirm_url)
+        subject = "Please confirm your email"
+        send_email(email, subject, html)
+
+        flash("A confirmation email has been sent to your email address.", "success")
         session['registered'] = True
         return redirect(url_for('login'))
 
     return render_template("register.html")
+
+@app.route('/confirm/<token>')
+def confirm_email(token):
+    try:
+        email = s.loads(token, salt='email-confirm', max_age=3600)
+    except:
+        flash('The confirmation link is invalid or has expired.', 'danger')
+        return redirect(url_for('login'))
+    
+    user = User.query.filter_by(email=email).first_or_404()
+    if user.confirmed:
+        flash('Account already confirmed. Please login.', 'success')
+    else:
+        user.confirmed = True
+        db.session.add(user)
+        db.session.commit()
+        flash('You have confirmed your account. Thanks!', 'success')
+    return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -225,7 +270,6 @@ def reportItem():
             discovered_location = request.form["discovered_location"]
             current_location = request.form["current_location"]
             description = request.form["item_description"]
-    
 
             image_data = image.read()
             if not isinstance(image_data, (bytes, bytearray)):
@@ -285,7 +329,7 @@ def get_page_range(current_page, total_pages, max_page_buttons=5):
 @app.route("/inventory")
 def inventory():
     page = request.args.get("page", 1, type=int)
-    items_per_page = request.args.get("items_per_page", 12, type=int)
+    items_per_page = request.args.get("items_per_page", 10, type=int)
     sort_by_name = request.args.get("sort_by_name", "asc")
 
     if sort_by_name == "asc":
@@ -320,7 +364,7 @@ def send_message(receiver_id):
     message = request.form['message']
     sent_date = request.form['sent_date']
     
-    new_message = Message(sender_id=sender_id, receiver_id=receiver_id, subject=subject, message=message, sent_date=sent_date)
+    new_message = UserMessage(sender_id=sender_id, receiver_id=receiver_id, subject=subject, message=message, sent_date=sent_date)
     db.session.add(new_message)
     db.session.commit()
     
@@ -332,7 +376,7 @@ def send_message(receiver_id):
 def received_messages(user_id):
     user = User.query.get(user_id)
     sender = aliased(User)
-    messages = db.session.query(Message, sender).filter(Message.receiver_id == user_id, Message.sender_id == sender.id).all()
+    messages = db.session.query(UserMessage, sender).filter(UserMessage.receiver_id == user_id, UserMessage.sender_id == sender.id).all()
     return render_template("messages.html", user=user, messages=messages)
 
 if __name__ == '__main__':
