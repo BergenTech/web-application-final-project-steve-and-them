@@ -47,6 +47,14 @@
               <img class="rounded-circle mt-5 profile-pic" src="default_profile_picture.png" alt="User Image">
               {% endif %}
               </div>
+              <form method="POST" enctype="multipart/form-data" action="{{url_for('change_profile_picture')}}">
+                <div class="form-group">
+                  <input type="file" class="form-control-file" id="profile_picture" name="profile_picture">
+                </div>
+                <br>
+                <button type="submit" class="btn btn-primary"> Update Profile Picture</button>
+              </form>
+              <br>
               <div id="profile-display">
                 <p><strong>First Name:</strong> {{ user.first_name }}</p>
                 <p><strong>Last Name:</strong> {{ user.last_name }}</p>
@@ -55,11 +63,15 @@
                 <button id="edit-profile-btn" class="btn btn-lg btn-primary radius-10">Edit Profile</button>
               </div>
               <br>
+              <br>
               <form id="edit-profile-form" action="/update_profile" method="POST" style="display:none;">
                 <p><strong>First Name:</strong> <input type="text" name="first_name" placeholder="{{ user.first_name }}" value="{{ user.first_name }}"></p>
                 <p><strong>Last Name:</strong> <input type="text" name="last_name" placeholder="{{ user.last_name }}" value="{{ user.last_name }}"></p>
                 <p><strong>Email:</strong> <input type="email" name="email" placeholder="{{ user.email }}" value="{{ user.email }}"></p>
                 <button type="submit" class="btn btn-lg btn-primary radius-10">Update Profile</button>
+                <br>
+                <br>
+                <br>
               </form>
               <form action="/change_password" method="POST">
                 <p><strong>Old Password:</strong> <input type="password" name="old_password"></p>

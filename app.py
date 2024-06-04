@@ -18,7 +18,7 @@ app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = 'stevechoi268@gmail.com'
-app.config['MAIL_PASSWORD'] = 'dykd bnpa kshc lfpw'
+app.config['MAIL_PASSWORD'] = 'oyen sihz llft bqgf'
 app.config['MAIL_DEFAULT_SENDER'] = 'stevechoi268@gmail.com'
 
 mail = Mail(app)
@@ -223,6 +223,20 @@ def account():
 
     return render_template("account.html", user=current_user, profile_picture=image_data_b64, transactions=transactions, recent_claimed_items=claimed_items)
 
+@app.route("/change_profile_picture", methods=["POST"])
+@login_required
+def change_profile_picture():
+    if request.method == "POST":
+        profile_picture = request.files["profile_picture"]
+
+        user = current_user
+        user.profile_picture = profile_picture.read()
+        db.session.commit()
+
+        flash("Profile picture updated successfully!", "success")
+        return redirect(url_for("account"))
+    
+
 @app.route('/update_profile', methods=['POST'])
 @login_required
 def update_profile():
@@ -326,22 +340,34 @@ def get_page_range(current_page, total_pages, max_page_buttons=5):
 
     return range(current_page - half_buttons, current_page + half_buttons + 1)
 
+
 @app.route("/inventory")
 def inventory():
     page = request.args.get("page", 1, type=int)
-    items_per_page = request.args.get("items_per_page", 10, type=int)
-    sort_by_name = request.args.get("sort_by_name", "asc")
+    items_per_page = request.args.get("items_per_page", 12, type=int)
+    sort_by = request.args.get("sort_by", "name_asc")
+    search_query = request.args.get("search", "")
 
-    if sort_by_name == "asc":
-        items = Item.query.order_by(asc(func.lower(Item.name))).paginate(page=page, per_page=items_per_page, error_out=False)
+    if sort_by == "name_asc":
+        order = asc(func.lower(Item.name))
+    elif sort_by == "name_desc":
+        order = desc(func.lower(Item.name))
+    elif sort_by == "date_asc":
+        order = asc(Item.date)
+    elif sort_by == "date_desc":
+        order = desc(Item.date)
+
+    if search_query:
+        items = Item.query.filter(Item.name.ilike(f"%{search_query}%")).order_by(order).paginate(page=page, per_page=items_per_page, error_out=False)
     else:
-        items = Item.query.order_by(desc(func.lower(Item.name))).paginate(page=page, per_page=items_per_page, error_out=False)
+        items = Item.query.order_by(order).paginate(page=page, per_page=items_per_page, error_out=False)
 
     for item in items.items:
         if item.image:
             item.image_base64 = base64.b64encode(item.image).decode('utf-8')
 
-    return render_template("inventory.html", items=items, sort_by_name=sort_by_name, items_per_page=items_per_page)
+    return render_template("inventory.html", items=items, sort_by=sort_by, items_per_page=items_per_page, search_query=search_query)
+
 
 @app.route("/contact/<int:user_id>")
 @login_required
