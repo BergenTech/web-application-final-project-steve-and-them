@@ -43,6 +43,7 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
     <a href="{{ url_for('contact', user_id=current_user.id) }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Send a Message</a>
     <a href="{{ url_for('received_messages', user_id=current_user.id) }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Received Messages</a>
     {%endif%}
+    <a href="/slides" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Presentation</a>
   </div>
 </div>
 </header>

@@ -70,7 +70,7 @@ class Item(db.Model):
     description = db.Column(db.String(255))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     transactions = db.relationship('Transaction', backref='item', lazy=True)
-    claimed = db.Column(db.Boolean, default = False)
+    claimed = db.Column(db.Boolean, default=False)
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -344,7 +344,7 @@ def get_page_range(current_page, total_pages, max_page_buttons=5):
 @app.route("/inventory")
 def inventory():
     page = request.args.get("page", 1, type=int)
-    items_per_page = request.args.get("items_per_page", 12, type=int)
+    items_per_page = request.args.get("items_per_page", 6, type=int)
     sort_by = request.args.get("sort_by", "name_asc")
     search_query = request.args.get("search", "")
 
@@ -404,6 +404,10 @@ def received_messages(user_id):
     sender = aliased(User)
     messages = db.session.query(UserMessage, sender).filter(UserMessage.receiver_id == user_id, UserMessage.sender_id == sender.id).all()
     return render_template("messages.html", user=user, messages=messages)
+
+@app.route('/slides')
+def slides():
+    return render_template('slides.html')
 
 if __name__ == '__main__':
     with app.app_context():
